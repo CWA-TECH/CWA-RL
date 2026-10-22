@@ -4,9 +4,11 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-# 1. Versiones: manda el plugin de AdMob. Se instala su última versión y la de Capacitor que él pide,
-#    para que nunca haya choque de versiones.
-if [ ! -d node_modules/@capacitor/core ]; then
+# 1. Versiones. Si package.json ya las tiene fijadas (lo normal), se instalan esas.
+#    Si se borran de package.json, se busca la última del plugin de AdMob y la de Capacitor que él pide.
+if node -e "process.exit(Object.keys(require('./package.json').dependencies||{}).length?0:1)"; then
+  npm install --no-audit --no-fund
+elif [ ! -d node_modules/@capacitor/core ]; then
   echo "Consultando versiones…"
   INFO=$(npm view @capacitor-community/admob --json)
   ADMOB=$(node -e "console.log(JSON.parse(process.argv[1]).version)" "$INFO")
@@ -25,7 +27,11 @@ fi
 node scripts/ajustes-android.js
 
 # 4. Icono y pantalla de arranque a partir de assets/. Si falla, se queda el de serie y no pasa nada.
-npx --yes @capacitor/assets generate --android --iconBackgroundColor '#16246B' --splashBackgroundColor '#16246B' || echo "AVISO: no se pudieron generar los iconos; se queda el de serie."
+if npx --yes @capacitor/assets generate --android --iconBackgroundColor '#16246B' --splashBackgroundColor '#16246B'; then
+  echo "::notice title=Iconos::generados a partir de assets/"
+else
+  echo "::warning title=Iconos::no se pudieron generar; se queda el icono de serie"
+fi
 
 # 5. Copia www/ dentro de Android.
 npx cap sync android

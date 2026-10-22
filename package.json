@@ -7,5 +7,15 @@
     "preparar": "bash scripts/preparar.sh",
     "apk": "bash scripts/preparar.sh && cd android && ./gradlew assembleDebug",
     "abrir": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor-community/admob": "~8.2.1",
+    "@capacitor/android": "~8.5.3",
+    "@capacitor/core": "~8.5.3",
+    "@capacitor/filesystem": "~8.1.5",
+    "@capacitor/share": "~8.0.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "~8.5.3"
   }
 }

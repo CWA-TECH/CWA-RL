@@ -55,7 +55,7 @@ jobs:
           git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" registros
 
       - name: Guardar la APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: rumbaluz-apk-de-prueba
           path: android/app/build/outputs/apk/debug/app-debug.apk
