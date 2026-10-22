@@ -11,25 +11,36 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 21
 
+      # Si algo falla, las últimas líneas del registro salen como aviso en la ejecución (se ven sin descargar nada).
       - name: Preparar el proyecto Android
-        run: bash scripts/preparar.sh
+        run: |
+          set -o pipefail
+          bash scripts/preparar.sh 2>&1 | tee preparar.log || { echo "::error title=Preparar falló::$(tail -40 preparar.log | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')"; exit 1; }
 
       - name: Compilar la APK de prueba
         working-directory: android
         run: |
+          set -o pipefail
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+          ./gradlew assembleDebug --no-daemon 2>&1 | tee ../gradle.log || { echo "::error title=Gradle falló::$(grep -E 'error|Error|FAILURE|What went wrong|>' ../gradle.log | tail -40 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')"; exit 1; }
+
+      - name: Datos de la compilación
+        if: success()
+        run: |
+          V=$(node -p "Object.entries(require('./package.json').dependencies||{}).map(([k,v])=>k+' '+v).join(' · ')")
+          echo "::notice title=Versiones::$V"
+          echo "::notice title=APK::$(du -h android/app/build/outputs/apk/debug/app-debug.apk | cut -f1)"
 
       - name: Guardar la APK
         uses: actions/upload-artifact@v4
