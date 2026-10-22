@@ -6,6 +6,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -41,6 +44,15 @@ jobs:
           V=$(node -p "Object.entries(require('./package.json').dependencies||{}).map(([k,v])=>k+' '+v).join(' · ')")
           echo "::notice title=Versiones::$V"
           echo "::notice title=APK::$(du -h android/app/build/outputs/apk/debug/app-debug.apk | cut -f1)"
+
+      # Si falla, deja los registros en la rama «registros» para poder leerlos sin entrar en GitHub.
+      - name: Guardar registros si falla
+        if: failure()
+        run: |
+          mkdir -p /tmp/reg && cp -f preparar.log gradle.log /tmp/reg/ 2>/dev/null || true
+          cd /tmp/reg && git init -q && git checkout -q -b registros
+          git -c user.name=ci -c user.email=ci@localhost add -A && git -c user.name=ci -c user.email=ci@localhost commit -q -m "Registros de la ejecución ${{ github.run_id }}"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" registros
 
       - name: Guardar la APK
         uses: actions/upload-artifact@v4
