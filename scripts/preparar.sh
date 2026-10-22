@@ -7,10 +7,13 @@ cd "$(dirname "$0")/.."
 # 1. Versiones: manda el plugin de AdMob. Se instala su última versión y la de Capacitor que él pide,
 #    para que nunca haya choque de versiones.
 if [ ! -d node_modules/@capacitor/core ]; then
-  ADMOB=$(npm view @capacitor-community/admob version)
-  RANGO=$(npm view @capacitor-community/admob peerDependencies --json | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const p=JSON.parse(s||'{}');console.log(p['@capacitor/core']||'')})")
-  MAYOR=$(echo "$RANGO" | grep -oE '[0-9]+' | head -1)
-  echo "AdMob $ADMOB pide @capacitor/core $RANGO -> Capacitor $MAYOR"
+  echo "Consultando versiones…"
+  INFO=$(npm view @capacitor-community/admob --json)
+  ADMOB=$(node -e "console.log(JSON.parse(process.argv[1]).version)" "$INFO")
+  RANGO=$(node -e "const p=JSON.parse(process.argv[1]);console.log((p.peerDependencies||{})['@capacitor/core']||(p.devDependencies||{})['@capacitor/core']||'')" "$INFO")
+  MAYOR=$(node -e "const m=String(process.argv[1]).match(/\d+/);console.log(m?m[0]:'')" "$RANGO")
+  if [ -z "$MAYOR" ]; then MAYOR=$(npm view @capacitor/core version | cut -d. -f1); fi
+  echo "AdMob $ADMOB (pide @capacitor/core «$RANGO») -> Capacitor $MAYOR"
   npm install --save "@capacitor-community/admob@$ADMOB" "@capacitor/core@^$MAYOR" "@capacitor/android@^$MAYOR" "@capacitor/filesystem@^$MAYOR" "@capacitor/share@^$MAYOR"
   npm install --save-dev "@capacitor/cli@^$MAYOR"
 fi
