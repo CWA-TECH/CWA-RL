@@ -1,0 +1,11 @@
+{
+  "name": "rumbaluz",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Rumbaluz · Hallaca, gaita y pan de jamón. App de Android (Capacitor) de navidad.rumbaluz.org",
+  "scripts": {
+    "preparar": "bash scripts/preparar.sh",
+    "apk": "bash scripts/preparar.sh && cd android && ./gradlew assembleDebug",
+    "abrir": "npx cap open android"
+  }
+}

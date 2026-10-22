@@ -1,0 +1,6 @@
+{
+  "appId": "org.rumbaluz.app",
+  "appName": "Rumbaluz",
+  "webDir": "www",
+  "android": { "backgroundColor": "#16246B" }
+}
